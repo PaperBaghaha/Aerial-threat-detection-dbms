@@ -1,13 +1,8 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
-
 app = Flask(__name__)
-
-
 def get_conn():
     return sqlite3.connect("database.db")
-
-
 def setup_database():
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
@@ -17,45 +12,33 @@ def setup_database():
 
     conn.commit()
     conn.close()
-
-
 @app.route("/")
 def intro():
     return render_template("intro.html")
-
-
 @app.route("/defencepage/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        # Allowing anything as requested, and redirecting straight to dashboard
         return redirect("/defencepage")
     return render_template("login.html")
-
-
 @app.route("/defencepage")
 def index():
     conn = get_conn()
     cur = conn.cursor()
 
-    search_query = request.args.get('search', '').strip()
-
-    if search_query:
-        search_term = f"%{search_query}%"
-        alerts = cur.execute("SELECT * FROM Alerts WHERE message LIKE ? OR object_id LIKE ? ORDER BY created_at DESC", (search_term, search_term)).fetchall()
-        threats = cur.execute("SELECT * FROM Threat_Assessment WHERE threat_level LIKE ? OR object_id LIKE ? ORDER BY assessed_at DESC", (search_term, search_term)).fetchall()
-        audit_logs = cur.execute("SELECT * FROM Audit_Log WHERE action LIKE ? OR details LIKE ? OR object_id LIKE ? ORDER BY timestamp DESC LIMIT 50", (search_term, search_term, search_term)).fetchall()
-        aerial_objects = cur.execute("SELECT * FROM Aerial_Objects WHERE type LIKE ? OR object_id LIKE ? ORDER BY detected_at DESC", (search_term, search_term)).fetchall()
-    else:
-        alerts = cur.execute("SELECT * FROM Alerts ORDER BY created_at DESC").fetchall()
-        threats = cur.execute("SELECT * FROM Threat_Assessment ORDER BY assessed_at DESC").fetchall()
-        audit_logs = cur.execute("SELECT * FROM Audit_Log ORDER BY timestamp DESC LIMIT 50").fetchall()
-        aerial_objects = cur.execute("SELECT * FROM Aerial_Objects ORDER BY detected_at DESC").fetchall()
+    alerts = cur.execute("SELECT * FROM Alerts ORDER BY created_at DESC").fetchall()
+    threats = cur.execute("SELECT * FROM Threat_Assessment ORDER BY assessed_at DESC").fetchall()
+    audit_logs = cur.execute("SELECT * FROM Audit_Log ORDER BY timestamp DESC LIMIT 50").fetchall()
+    aerial_objects = cur.execute("SELECT * FROM Aerial_Objects ORDER BY detected_at DESC").fetchall()
 
     conn.close()
 
-    return render_template("index.html", alerts=alerts, threats=threats, audit_logs=audit_logs, aerial_objects=aerial_objects, search=search_query)
-
-
+    return render_template(
+        "index.html",
+        alerts=alerts,
+        threats=threats,
+        audit_logs=audit_logs,
+        aerial_objects=aerial_objects
+    )
 @app.route("/defencepage/dbs")
 def view_database():
     conn = get_conn()
@@ -136,8 +119,6 @@ def update(id):
         SET type = ?, speed = ?, altitude = ?
         WHERE object_id = ?
     """, (obj_type, speed, altitude, id))
-
-    # Calculate new Threat Assessment
     threat_level = 'LOW'
     if obj_type == 'Missile' and speed > 900:
         threat_level = 'CRITICAL'
@@ -160,7 +141,6 @@ def update(id):
         WHERE object_id = ?
     """, (threat_level, priority_score, id))
 
-    # Calculate new Alert message
     msg = 'Monitor'
     if threat_level == 'CRITICAL':
         msg = 'CRITICAL THREAT'

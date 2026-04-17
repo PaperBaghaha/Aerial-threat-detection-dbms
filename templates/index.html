@@ -363,16 +363,9 @@
         <h1> Threat Detection Dashboard</h1>
 
         <div class="pixel-panel">
-            <h2>> Query Global Database <span class="cursor"></span></h2>
-            <form method="GET" action="/defencepage">
-                <input name="search" placeholder="SEARCH DATABASE (ID, Threat Level, Message...)" value="{{ search }}" style="width: 70%;">
-                <button type="submit" style="background-color: var(--warn-orange); border-color: #c2410c;">SCAN</button>
-                {% if search %}
-                    <a href="/defencepage" class="btn-small" style="padding: 12px 24px; font-size: 18px; margin-left: 10px; color: var(--terminal-green); border-color: var(--terminal-green); text-decoration: none;">CLEAR</a>
-                {% endif %}
-                <a href="/defencepage/dbs" class="btn-small" style="padding: 12px 24px; font-size: 18px; margin-left: auto; color: white; border-color: #3f4d36; background: #2c362a; text-decoration: none; box-shadow: inset -2px -2px 0px rgba(0,0,0,0.5);">VIEW DATABASE</a>
-            </form>
-        </div>
+            <h2>> Database Controls <span class="cursor"></span></h2>
+            <a href="/defencepage/dbs" class="btn-small" style="padding: 12px 24px; font-size: 18px; color: white; border-color: #3f4d36; background: #2c362a; text-decoration: none; box-shadow: inset -2px -2px 0px rgba(0,0,0,0.5);">VIEW DATABASE</a>
+    </div>
 
         <div class="pixel-panel">
             <h2>> Add Aerial Object <span class="cursor"></span></h2>
