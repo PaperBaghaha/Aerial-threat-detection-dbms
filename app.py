@@ -44,14 +44,38 @@ def index():
         alerts = cur.execute("SELECT * FROM Alerts WHERE message LIKE ? OR object_id LIKE ? ORDER BY created_at DESC", (search_term, search_term)).fetchall()
         threats = cur.execute("SELECT * FROM Threat_Assessment WHERE threat_level LIKE ? OR object_id LIKE ? ORDER BY assessed_at DESC", (search_term, search_term)).fetchall()
         audit_logs = cur.execute("SELECT * FROM Audit_Log WHERE action LIKE ? OR details LIKE ? OR object_id LIKE ? ORDER BY timestamp DESC LIMIT 50", (search_term, search_term, search_term)).fetchall()
+        aerial_objects = cur.execute("SELECT * FROM Aerial_Objects WHERE type LIKE ? OR object_id LIKE ? ORDER BY detected_at DESC", (search_term, search_term)).fetchall()
     else:
         alerts = cur.execute("SELECT * FROM Alerts ORDER BY created_at DESC").fetchall()
         threats = cur.execute("SELECT * FROM Threat_Assessment ORDER BY assessed_at DESC").fetchall()
         audit_logs = cur.execute("SELECT * FROM Audit_Log ORDER BY timestamp DESC LIMIT 50").fetchall()
+        aerial_objects = cur.execute("SELECT * FROM Aerial_Objects ORDER BY detected_at DESC").fetchall()
 
     conn.close()
 
-    return render_template("index.html", alerts=alerts, threats=threats, audit_logs=audit_logs, search=search_query)
+    return render_template("index.html", alerts=alerts, threats=threats, audit_logs=audit_logs, aerial_objects=aerial_objects, search=search_query)
+
+
+@app.route("/defencepage/dbs")
+def view_database():
+    conn = get_conn()
+    cur = conn.cursor()
+    
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
+    tables = cur.fetchall()
+    
+    db_data = {}
+    for (table_name,) in tables:
+        cur.execute(f"PRAGMA table_info({table_name})")
+        columns = [row[1] for row in cur.fetchall()]
+        
+        cur.execute(f"SELECT * FROM {table_name}")
+        rows = cur.fetchall()
+        
+        db_data[table_name] = {'columns': columns, 'rows': rows}
+        
+    conn.close()
+    return render_template("dbs.html", db_data=db_data)
 
 
 @app.route("/defencepage/add", methods=["POST"])

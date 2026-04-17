@@ -370,6 +370,7 @@
                 {% if search %}
                     <a href="/defencepage" class="btn-small" style="padding: 12px 24px; font-size: 18px; margin-left: 10px; color: var(--terminal-green); border-color: var(--terminal-green); text-decoration: none;">CLEAR</a>
                 {% endif %}
+                <a href="/defencepage/dbs" class="btn-small" style="padding: 12px 24px; font-size: 18px; margin-left: auto; color: white; border-color: #3f4d36; background: #2c362a; text-decoration: none; box-shadow: inset -2px -2px 0px rgba(0,0,0,0.5);">VIEW DATABASE</a>
             </form>
         </div>
 
@@ -381,6 +382,32 @@
                 <input name="altitude" type="number" placeholder="ALTITUDE (m)" required>
                 <button type="submit">Deploy Target</button>
             </form>
+        </div>
+
+        <div class="pixel-panel">
+            <h2>> Raw Telemetry Database</h2>
+            <table>
+                <tr>
+                    <th>Object ID</th>
+                    <th>Type</th>
+                    <th>Speed</th>
+                    <th>Altitude</th>
+                    <th>Detected At</th>
+                </tr>
+                {% for obj in aerial_objects %}
+                <tr>
+                    <td>OBJ-{{obj[0]}}</td>
+                    <td>{{obj[1]}}</td>
+                    <td>{{obj[2]}} km/h</td>
+                    <td>{{obj[3]}} m</td>
+                    <td style="color: #8b9d80;">{{obj[4]}}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #4a5c40;">NO TELEMETRY DATA FOUND</td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
 
         <div class="pixel-panel">
