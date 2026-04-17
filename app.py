@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session, flash
 import sqlite3
+
 app = Flask(__name__)
+app.secret_key = 'super_secret_key_threat_detection'
 def get_conn():
     return sqlite3.connect("database.db")
 def setup_database():
@@ -18,6 +20,9 @@ def intro():
 @app.route("/defencepage/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
+        rank = request.form.get("rank")
+        if rank:
+            session['role'] = rank
         return redirect("/defencepage")
     return render_template("login.html")
 @app.route("/defencepage")
@@ -63,6 +68,10 @@ def view_database():
 
 @app.route("/defencepage/add", methods=["POST"])
 def add():
+    if session.get('role') == 'analyst':
+        flash('ACCESS DENIED: Analysts are restricted to view-only access.', 'error')
+        return redirect("/defencepage")
+        
     obj_type = request.form["type"]
     speed = int(request.form["speed"])
     altitude = int(request.form["altitude"])
@@ -83,6 +92,11 @@ def add():
 
 @app.route("/defencepage/delete/<int:id>", methods=["POST"])
 def delete_record(id):
+    role = session.get('role')
+    if role in ['analyst', 'commander']:
+        flash('ACCESS DENIED: Only Generals have authorization to delete records.', 'error')
+        return redirect("/defencepage")
+        
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("DELETE FROM Aerial_Objects WHERE object_id = ?", (id,))
@@ -95,6 +109,10 @@ def delete_record(id):
 
 @app.route("/defencepage/edit/<int:id>")
 def edit(id):
+    if session.get('role') == 'analyst':
+        flash('ACCESS DENIED: Analysts are restricted to view-only access.', 'error')
+        return redirect("/defencepage")
+        
     conn = get_conn()
     cur = conn.cursor()
     obj = cur.execute("SELECT * FROM Aerial_Objects WHERE object_id = ?", (id,)).fetchone()
@@ -106,6 +124,10 @@ def edit(id):
 
 @app.route("/defencepage/update/<int:id>", methods=["POST"])
 def update(id):
+    if session.get('role') == 'analyst':
+        flash('ACCESS DENIED: Analysts are restricted to view-only access.', 'error')
+        return redirect("/defencepage")
+        
     obj_type = request.form["type"]
     speed = int(request.form["speed"])
     altitude = int(request.form["altitude"])
