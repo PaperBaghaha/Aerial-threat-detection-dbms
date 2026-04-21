@@ -46,6 +46,12 @@ Open your web browser and navigate directly to the application boot sequence:
 **http://127.0.0.1:5000/**
 *(You will be securely routed through the `/` bootnode directly into the `/defencepage/login` authorization portal).*
 
+#### Default Credentials
+Use the following secure authorization profiles to access the system:
+- **General (L3):** Username: `admin` | Password: `admin123`
+- **Commander (L2):** Username: `commander_1` | Password: `cmd123`
+- **Analyst (L1):** Username: `analyst_1` | Password: `ana123`
+
 ---
 
 ## Relational Entity Architecture

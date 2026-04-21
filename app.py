@@ -1,6 +1,18 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import sqlite3
+from functools import wraps
+
 app = Flask(__name__)
+app.secret_key = 'super_secret_terminal_key'
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect('/defencepage/login')
+        return f(*args, **kwargs)
+    return decorated_function
+
 def get_conn():
     return sqlite3.connect("database.db")
 def setup_database():
@@ -17,10 +29,58 @@ def intro():
     return render_template("intro.html")
 @app.route("/defencepage/login", methods=["GET", "POST"])
 def login():
+    error = None
     if request.method == "POST":
-        return redirect("/defencepage")
-    return render_template("login.html")
+        username = request.form.get("username")
+        password = request.form.get("password")
+        rank = request.form.get("rank")
+        
+        conn = get_conn()
+        cur = conn.cursor()
+        user = cur.execute("SELECT * FROM Users WHERE username = ? AND password = ? AND role = ?", (username, password, rank)).fetchone()
+        conn.close()
+        
+        if user:
+            session['username'] = user[1]
+            session['role'] = user[3]
+            return redirect("/defencepage")
+        else:
+            error = "UNAUTHORIZED ACCESS ATTEMPT. INVALID CREDENTIALS."
+            
+    return render_template("login.html", error=error)
+
+@app.route("/defencepage/logout")
+def logout():
+    session.clear()
+    return redirect("/defencepage/login")
+
+@app.route("/defencepage/login/createuser", methods=["GET", "POST"])
+def createuser():
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        rank = request.form.get("rank")
+        passkey = request.form.get("passkey")
+        
+        if passkey == "maverick21":
+            conn = get_conn()
+            cur = conn.cursor()
+            try:
+                cur.execute("INSERT INTO Users (username, password, role) VALUES (?, ?, ?)", (username, password, rank))
+                conn.commit()
+                return redirect("/defencepage/login")
+            except sqlite3.IntegrityError:
+                error = "ERROR: OPERATIVE ID ALREADY IN DATABASE."
+            finally:
+                conn.close()
+        else:
+            error = "UNAUTHORIZED ACCESS: INVALID MILITARY PASS KEY."
+            
+    return render_template("createuser.html", error=error)
+
 @app.route("/defencepage")
+@login_required
 def index():
     conn = get_conn()
     cur = conn.cursor()
@@ -40,11 +100,12 @@ def index():
         aerial_objects=aerial_objects
     )
 @app.route("/defencepage/dbs")
+@login_required
 def view_database():
     conn = get_conn()
     cur = conn.cursor()
     
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != 'Users';")
     tables = cur.fetchall()
     
     db_data = {}
@@ -62,6 +123,7 @@ def view_database():
 
 
 @app.route("/defencepage/add", methods=["POST"])
+@login_required
 def add():
     obj_type = request.form["type"]
     speed = int(request.form["speed"])
@@ -82,6 +144,7 @@ def add():
 
 
 @app.route("/defencepage/delete/<int:id>", methods=["POST"])
+@login_required
 def delete_record(id):
     conn = get_conn()
     cur = conn.cursor()
@@ -94,6 +157,7 @@ def delete_record(id):
 
 
 @app.route("/defencepage/edit/<int:id>")
+@login_required
 def edit(id):
     conn = get_conn()
     cur = conn.cursor()
@@ -105,6 +169,7 @@ def edit(id):
 
 
 @app.route("/defencepage/update/<int:id>", methods=["POST"])
+@login_required
 def update(id):
     obj_type = request.form["type"]
     speed = int(request.form["speed"])

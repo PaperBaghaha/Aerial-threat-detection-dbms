@@ -83,3 +83,16 @@ BEGIN
     INSERT INTO Audit_Log (object_id, action, details)
     VALUES (OLD.object_id, 'DELETE', 'Object deleted: Type: ' || OLD.type || ', Speed: ' || OLD.speed);
 END;
+
+-- Users Table
+CREATE TABLE IF NOT EXISTS Users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL
+);
+
+-- Insert dummy users if they don't exist
+INSERT OR IGNORE INTO Users (username, password, role) VALUES ('admin', 'admin123', 'general');
+INSERT OR IGNORE INTO Users (username, password, role) VALUES ('commander_1', 'cmd123', 'commander');
+INSERT OR IGNORE INTO Users (username, password, role) VALUES ('analyst_1', 'ana123', 'analyst');

@@ -360,7 +360,13 @@
     <div class="radar-blip blip-4"></div>
 
     <div class="container">
-        <h1> Threat Detection Dashboard</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 2px solid #3a4c3f; padding-bottom: 20px;">
+            <h1 style="margin-bottom: 0; text-align: left;"> Threat Detection Dashboard</h1>
+            <div style="text-align: right;">
+                <div style="color: var(--terminal-green); font-size: 20px; margin-bottom: 10px;">OPERATIVE: <span style="color: white;">[{{ session.username | upper }}]</span></div>
+                <a href="/defencepage/logout" class="btn-small btn-delete" style="padding: 8px 16px;">ABORT SESSION</a>
+            </div>
+        </div>
 
         <div class="pixel-panel">
             <h2>> Database Controls <span class="cursor"></span></h2>
